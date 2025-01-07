@@ -56,16 +56,40 @@ class _HomePageState extends State<HomePage> {
 
     switch (currentDirection) {
       case snake_direction.UP:
-        newHeadPosition = snakePosition.last - rowSize;
+        {
+          if (snakePosition.last < rowSize) {
+            newHeadPosition = snakePosition.last - rowSize + totalNumberSquares;
+          } else {
+            newHeadPosition = snakePosition.last - rowSize;
+          }
+        }
         break;
       case snake_direction.DOWN:
-        newHeadPosition = snakePosition.last + rowSize;
+        {
+          if (snakePosition.last + rowSize > totalNumberSquares) {
+            newHeadPosition = snakePosition.last + rowSize - totalNumberSquares;
+          } else {
+            newHeadPosition = snakePosition.last + rowSize;
+          }
+        }
         break;
       case snake_direction.LEFT:
-        newHeadPosition = snakePosition.last - 1;
+        {
+          if (snakePosition.last % rowSize == 0) {
+            newHeadPosition = snakePosition.last - 1 + rowSize;
+          } else {
+            newHeadPosition = snakePosition.last - 1;
+          }
+        }
         break;
       case snake_direction.RIGHT:
-        newHeadPosition = snakePosition.last + 1;
+        {
+          if (snakePosition.last % rowSize == 9) {
+            newHeadPosition = snakePosition.last + 1 - rowSize;
+          } else {
+            newHeadPosition = snakePosition.last + 1;
+          }
+        }
         break;
     }
 
