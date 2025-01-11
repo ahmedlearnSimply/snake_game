@@ -44,6 +44,8 @@ class _HomePageState extends State<HomePage> {
           //* generate new food position
 
           //* generate new snake position
+
+          //* Keep the Snake Moving
           moveSnake();
         });
       },
