@@ -32,6 +32,7 @@ class _HomePageState extends State<HomePage> {
   //* some of vars
   int totalNumberSquares = 100;
   int rowSize = 10;
+  int currentScore = 0;
 
   //* snake direction is initially to the right
   var currentDirection = snake_direction.RIGHT;
@@ -48,12 +49,46 @@ class _HomePageState extends State<HomePage> {
 
           //* Keep the Snake Moving
           moveSnake();
+
+          //* check if the game is over
+          if (gameOver()) {
+            timer.cancel();
+            showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Text('Game Over'),
+                    content: Text('Your Score: ${currentScore}'),
+                    actions: <Widget>[
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text('Restart'),
+                      ),
+                    ],
+                  );
+                });
+          }
         });
       },
     );
   }
 
+  //* Game Over
+  bool gameOver() {
+    //* this is the list of bodySnake
+    List<int> bodySnake = snakePosition.sublist(0, snakePosition.length - 1);
+
+    if (bodySnake.contains(snakePosition.last)) {
+      return true;
+    }
+    return false;
+  }
+
+  //* generate new food position method
   void eatFood() {
+    currentScore++;
     while (snakePosition.contains(foodPosition)) {
       foodPosition = Random().nextInt(totalNumberSquares);
     }
