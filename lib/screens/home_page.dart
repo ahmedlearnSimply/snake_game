@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:snake_game/widgets/blank_pixels.dart';
@@ -52,6 +53,12 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void eatFood() {
+    while (snakePosition.contains(foodPosition)) {
+      foodPosition = Random().nextInt(totalNumberSquares);
+    }
+  }
+
   //* move snake position method
   void moveSnake() {
     int newHeadPosition;
@@ -95,9 +102,13 @@ class _HomePageState extends State<HomePage> {
         break;
     }
 
+    if (snakePosition.last == foodPosition) {
+      eatFood();
+    } else {
+      snakePosition.removeAt(0);
+    }
     // Add new head and remove tail
     snakePosition.add(newHeadPosition);
-    snakePosition.removeAt(0);
   }
 
   @override
