@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:snake_game/widgets/blank_pixels.dart';
 import 'package:snake_game/widgets/food_snake.dart';
 import 'package:snake_game/widgets/snake_pixels.dart';
@@ -21,6 +22,7 @@ enum snake_direction { UP, DOWN, LEFT, RIGHT }
 class _HomePageState extends State<HomePage> {
   //* food position
   int foodPosition = 55;
+  bool hasStarted = false;
 
   //* snake position
   List<int> snakePosition = [
@@ -39,6 +41,7 @@ class _HomePageState extends State<HomePage> {
 
   //* start game method
   void startGame() {
+    hasStarted = true;
     Timer.periodic(
       Duration(milliseconds: 200),
       (timer) {
@@ -52,6 +55,7 @@ class _HomePageState extends State<HomePage> {
 
           //* check if the game is over
           if (gameOver()) {
+            hasStarted = false;
             timer.cancel();
             showDialog(
                 context: context,
@@ -62,6 +66,7 @@ class _HomePageState extends State<HomePage> {
                     actions: <Widget>[
                       ElevatedButton(
                         onPressed: () {
+                          restartGame();
                           Navigator.pop(context);
                         },
                         child: Text('Restart'),
@@ -73,6 +78,20 @@ class _HomePageState extends State<HomePage> {
         });
       },
     );
+  }
+
+//* restart the game
+  void restartGame() {
+    snakePosition = [
+      0,
+      1,
+      2,
+    ];
+    foodPosition = Random().nextInt(totalNumberSquares);
+    currentDirection = snake_direction.RIGHT;
+    currentScore = 0;
+    hasStarted = false;
+    startGame();
   }
 
   //* Game Over
@@ -153,7 +172,44 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           //* high scores
-          Expanded(child: Container()),
+          Expanded(
+              child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                "Current Score : $currentScore",
+                style: TextStyle(
+                  fontSize: 23,
+                  color: Colors.white,
+                ),
+              ),
+              // Divider(
+              //   color: Colors.white,
+              //   thickness: 2,
+              // ),
+
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "Top Score ",
+                    style: TextStyle(
+                      fontSize: 23,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Gap(10),
+                  Text(
+                    "Ahmed Adel ",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          )),
 
           //* Game Grid
           Expanded(
@@ -206,22 +262,45 @@ class _HomePageState extends State<HomePage> {
 
           //* Play Button
           Expanded(
-              child: Container(
-            child: Center(
-              child: MaterialButton(
-                minWidth: 100,
-                height: 50,
-                color: Colors.pink,
-                onPressed: startGame,
-                child: Text(
-                  "Play",
-                  style: TextStyle(
-                    fontSize: 24,
-                    color: Colors.white,
+              child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Container(
+                child: Center(
+                  child: MaterialButton(
+                    minWidth: 100,
+                    height: 50,
+                    color: hasStarted ? Colors.grey : Colors.pink,
+                    onPressed: hasStarted ? () {} : startGame,
+                    child: Text(
+                      "Play",
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+              //!todo  do this
+              Container(
+                child: Center(
+                  child: MaterialButton(
+                    minWidth: 100,
+                    height: 50,
+                    color: hasStarted ? Colors.grey : Colors.pink,
+                    onPressed: hasStarted ? () {} : startGame,
+                    child: Text(
+                      "Stop",
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           )),
         ],
       ),
