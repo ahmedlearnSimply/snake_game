@@ -54,6 +54,7 @@ class _HomePageState extends State<HomePage> {
           moveSnake();
 
           //* check if the game is over
+          // gameOver();
           if (gameOver()) {
             hasStarted = false;
             timer.cancel();
@@ -70,6 +71,13 @@ class _HomePageState extends State<HomePage> {
                           Navigator.pop(context);
                         },
                         child: Text('Restart'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          restartGame();
+                          Navigator.pop(context);
+                        },
+                        child: Text('Submit'),
                       ),
                     ],
                   );
