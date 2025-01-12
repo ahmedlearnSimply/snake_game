@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:snake_game/widgets/blank_pixels.dart';
+import 'package:snake_game/widgets/custom_text_form_field.dart';
 import 'package:snake_game/widgets/food_snake.dart';
 import 'package:snake_game/widgets/snake_pixels.dart';
 
@@ -35,6 +36,7 @@ class _HomePageState extends State<HomePage> {
   int totalNumberSquares = 100;
   int rowSize = 10;
   int currentScore = 0;
+  TextEditingController nameController = new TextEditingController();
 
   //* snake direction is initially to the right
   var currentDirection = snake_direction.RIGHT;
@@ -55,30 +57,55 @@ class _HomePageState extends State<HomePage> {
 
           //* check if the game is over
           // gameOver();
-          if (gameOver()) {
+          if (true) {
             hasStarted = false;
             timer.cancel();
             showDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: Text('Game Over'),
-                    content: Text('Your Score: ${currentScore}'),
+                    elevation: 10,
+                    title: Text(
+                      'Game Over',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 24,
+                        color: Colors.red,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    content: SizedBox(
+                      height: 150,
+                      child: Column(
+                        children: [
+                          Text(
+                            'Your Score: ${currentScore}',
+                          ),
+                          Gap(30),
+                          CustomTextFormField(
+                            controller: nameController,
+                            prefixIcon: Icon(Icons.person),
+                            labelText: "Enter your name ",
+                          )
+                        ],
+                      ),
+                    ),
                     actions: <Widget>[
-                      ElevatedButton(
-                        onPressed: () {
-                          restartGame();
-                          Navigator.pop(context);
-                        },
-                        child: Text('Restart'),
+                      Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          child: Text('Submit'),
+                        ),
                       ),
-                      ElevatedButton(
-                        onPressed: () {
-                          restartGame();
-                          Navigator.pop(context);
-                        },
-                        child: Text('Submit'),
-                      ),
+                      // ElevatedButton(
+                      //   onPressed: () {
+                      //     restartGame();
+                      //     Navigator.pop(context);
+                      //   },
+                      //   child: Text('Restart'),
+                      // ),
                     ],
                   );
                 });
@@ -101,6 +128,8 @@ class _HomePageState extends State<HomePage> {
     hasStarted = false;
     startGame();
   }
+
+//* submit the game
 
   //* Game Over
   bool gameOver() {
