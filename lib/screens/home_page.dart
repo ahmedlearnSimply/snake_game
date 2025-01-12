@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:firebase_cloud_firestore/firebase_cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:snake_game/widgets/blank_pixels.dart';
@@ -32,6 +33,8 @@ class _HomePageState extends State<HomePage> {
     2,
   ];
 
+  //* high score list
+
   //* some of vars
   int totalNumberSquares = 100;
   int rowSize = 10;
@@ -57,7 +60,7 @@ class _HomePageState extends State<HomePage> {
 
           //* check if the game is over
           // gameOver();
-          if (true) {
+          if (gameOver()) {
             hasStarted = false;
             timer.cancel();
             showDialog(
@@ -94,6 +97,7 @@ class _HomePageState extends State<HomePage> {
                       Center(
                         child: ElevatedButton(
                           onPressed: () {
+                            submitScore();
                             Navigator.pop(context);
                           },
                           child: Text('Submit'),
@@ -128,8 +132,6 @@ class _HomePageState extends State<HomePage> {
     hasStarted = false;
     startGame();
   }
-
-//* submit the game
 
   //* Game Over
   bool gameOver() {
@@ -202,144 +204,158 @@ class _HomePageState extends State<HomePage> {
     snakePosition.add(newHeadPosition);
   }
 
+  //* submit score to the firebase
+  void submitScore() {
+    var dataBase = FirebaseFirestore.instance;
+    dataBase.collection('highscores').add({
+      'name': nameController.text,
+      'score': currentScore,
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Column(
-        children: [
-          //* high scores
-          Expanded(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Text(
-                "Current Score : $currentScore",
-                style: TextStyle(
-                  fontSize: 23,
-                  color: Colors.white,
-                ),
-              ),
-              // Divider(
-              //   color: Colors.white,
-              //   thickness: 2,
-              // ),
-
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Top Score ",
-                    style: TextStyle(
-                      fontSize: 23,
-                      color: Colors.white,
-                    ),
+      body: SizedBox(
+        width: screenWidth > 420 ? 400 : screenWidth,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            //* high scores
+            Expanded(
+                child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Text(
+                  "Current Score : $currentScore",
+                  style: TextStyle(
+                    fontSize: 23,
+                    color: Colors.white,
                   ),
-                  Gap(10),
-                  Text(
-                    "Ahmed Adel ",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          )),
-
-          //* Game Grid
-          Expanded(
-            flex: 3,
-            child: GestureDetector(
-              onVerticalDragUpdate: (details) {
-                if (details.delta.dy < 0 &&
-                    currentDirection != snake_direction.DOWN) {
-                  //*move up
-                  print('move up');
-                  currentDirection = snake_direction.UP;
-                } else if (details.delta.dy > 0 &&
-                    currentDirection != snake_direction.UP) {
-                  //* move down
-                  currentDirection = snake_direction.DOWN;
-                  print('move down');
-                }
-              },
-              onHorizontalDragUpdate: (details) {
-                if (details.delta.dx < 0 &&
-                    currentDirection != snake_direction.RIGHT) {
-                  //*move left
-                  currentDirection = snake_direction.LEFT;
-                  print('move left');
-                } else if (details.delta.dx > 0 &&
-                    currentDirection != snake_direction.LEFT) {
-                  //* move right
-                  currentDirection = snake_direction.RIGHT;
-                  print('move right');
-                }
-              },
-              child: GridView.builder(
-                itemCount: totalNumberSquares,
-                physics: NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: rowSize,
                 ),
-                itemBuilder: (context, index) {
-                  if (snakePosition.contains(index)) {
-                    return SnakePixels();
-                  } else if (foodPosition == index) {
-                    return FoodSnake();
-                  } else {
-                    return BlankPixels();
+                // Divider(
+                //   color: Colors.white,
+                //   thickness: 2,
+                // ),
+
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Top Score ",
+                      style: TextStyle(
+                        fontSize: 23,
+                        color: Colors.white,
+                      ),
+                    ),
+                    Gap(10),
+                    Text(
+                      "Ahmed Adel ",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            )),
+
+            //* Game Grid
+            Expanded(
+              flex: 3,
+              child: GestureDetector(
+                onVerticalDragUpdate: (details) {
+                  if (details.delta.dy < 0 &&
+                      currentDirection != snake_direction.DOWN) {
+                    //*move up
+                    print('move up');
+                    currentDirection = snake_direction.UP;
+                  } else if (details.delta.dy > 0 &&
+                      currentDirection != snake_direction.UP) {
+                    //* move down
+                    currentDirection = snake_direction.DOWN;
+                    print('move down');
                   }
                 },
+                onHorizontalDragUpdate: (details) {
+                  if (details.delta.dx < 0 &&
+                      currentDirection != snake_direction.RIGHT) {
+                    //*move left
+                    currentDirection = snake_direction.LEFT;
+                    print('move left');
+                  } else if (details.delta.dx > 0 &&
+                      currentDirection != snake_direction.LEFT) {
+                    //* move right
+                    currentDirection = snake_direction.RIGHT;
+                    print('move right');
+                  }
+                },
+                child: GridView.builder(
+                  itemCount: totalNumberSquares,
+                  physics: NeverScrollableScrollPhysics(),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: rowSize,
+                  ),
+                  itemBuilder: (context, index) {
+                    if (snakePosition.contains(index)) {
+                      return SnakePixels();
+                    } else if (foodPosition == index) {
+                      return FoodSnake();
+                    } else {
+                      return BlankPixels();
+                    }
+                  },
+                ),
               ),
             ),
-          ),
 
-          //* Play Button
-          Expanded(
-              child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Container(
-                child: Center(
-                  child: MaterialButton(
-                    minWidth: 100,
-                    height: 50,
-                    color: hasStarted ? Colors.grey : Colors.pink,
-                    onPressed: hasStarted ? () {} : startGame,
-                    child: Text(
-                      "Play",
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
+            //* Play Button
+            Expanded(
+                child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Container(
+                  child: Center(
+                    child: MaterialButton(
+                      minWidth: 100,
+                      height: 50,
+                      color: hasStarted ? Colors.grey : Colors.pink,
+                      onPressed: hasStarted ? () {} : startGame,
+                      child: Text(
+                        "Play",
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-              //!todo  do this
-              Container(
-                child: Center(
-                  child: MaterialButton(
-                    minWidth: 100,
-                    height: 50,
-                    color: hasStarted ? Colors.grey : Colors.pink,
-                    onPressed: hasStarted ? () {} : startGame,
-                    child: Text(
-                      "Stop",
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
+                //!todo  do this
+                Container(
+                  child: Center(
+                    child: MaterialButton(
+                      minWidth: 100,
+                      height: 50,
+                      color: hasStarted ? Colors.grey : Colors.pink,
+                      onPressed: hasStarted ? () {} : startGame,
+                      child: Text(
+                        "Stop",
+                        style: TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          )),
-        ],
+              ],
+            )),
+          ],
+        ),
       ),
     );
   }
