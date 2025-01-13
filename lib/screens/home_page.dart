@@ -40,6 +40,22 @@ class _HomePageState extends State<HomePage> {
   int rowSize = 10;
   int currentScore = 0;
   TextEditingController nameController = new TextEditingController();
+  List<String> highScoreList = [];
+  late final Future? letsGetDocsIds;
+
+  @override
+  void initState() {
+    letsGetDocsIds = getDocId();
+
+    super.initState();
+  }
+
+  Future getDocId() async {
+    await FirebaseFirestore.instance
+        .collection("highscores")
+        .orderBy("score", descending: true)
+        .limit(5);
+  }
 
   //* snake direction is initially to the right
   var currentDirection = snake_direction.RIGHT;
