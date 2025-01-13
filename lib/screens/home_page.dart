@@ -54,7 +54,11 @@ class _HomePageState extends State<HomePage> {
     await FirebaseFirestore.instance
         .collection("highscores")
         .orderBy("score", descending: true)
-        .limit(5);
+        .limit(5)
+        .get()
+        .then((value) => value.docs.forEach((element) {
+              highScoreList.add(element.reference.id);
+            }));
   }
 
   //* snake direction is initially to the right
@@ -267,14 +271,24 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Gap(10),
-                    Text(
-                      "Ahmed Adel ",
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white,
-                      ),
-                    ),
                   ],
+                ),
+                Expanded(
+                  child: FutureBuilder(
+                      future: letsGetDocsIds,
+                      builder: (context, snapshot) {
+                        return ListView.builder(
+                          itemCount: highScoreList.length,
+                          itemBuilder: (context, index) {
+                            return Text(
+                              highScoreList[index],
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            );
+                          },
+                        );
+                      }),
                 ),
               ],
             )),
