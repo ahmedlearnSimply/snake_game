@@ -9,6 +9,7 @@ import 'package:gap/gap.dart';
 import 'package:snake_game/widgets/blank_pixels.dart';
 import 'package:snake_game/widgets/custom_text_form_field.dart';
 import 'package:snake_game/widgets/food_snake.dart';
+import 'package:snake_game/widgets/high_score_tile.dart';
 import 'package:snake_game/widgets/snake_pixels.dart';
 
 class HomePage extends StatefulWidget {
@@ -67,80 +68,86 @@ class _HomePageState extends State<HomePage> {
   //* start game method
   void startGame() {
     hasStarted = true;
-    Timer.periodic(
+    gameTimer = Timer.periodic(
       Duration(milliseconds: 200),
       (timer) {
         setState(() {
-          //* generate new food position
-
-          //* generate new snake position
-
-          //* Keep the Snake Moving
           moveSnake();
 
-          //* check if the game is over
           // gameOver();
           if (gameOver()) {
-            hasStarted = false;
-            timer.cancel();
-            showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    elevation: 10,
-                    title: Text(
-                      'Game Over',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 24,
-                        color: Colors.red,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    content: SizedBox(
-                      height: 150,
-                      child: Column(
-                        children: [
-                          Text(
-                            'Your Score: ${currentScore}',
-                          ),
-                          Gap(30),
-                          CustomTextFormField(
-                            controller: nameController,
-                            prefixIcon: Icon(Icons.person),
-                            labelText: "Enter your name ",
-                          )
-                        ],
-                      ),
-                    ),
-                    actions: <Widget>[
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            submitScore();
-                            Navigator.pop(context);
-                          },
-                          child: Text('Submit'),
-                        ),
-                      ),
-                      // ElevatedButton(
-                      //   onPressed: () {
-                      //     restartGame();
-                      //     Navigator.pop(context);
-                      //   },
-                      //   child: Text('Restart'),
-                      // ),
-                    ],
-                  );
-                });
+            stopGame();
+            CustomShowDialog();
           }
         });
       },
     );
   }
 
+  Timer? gameTimer;
+  //* stop game method
+  void stopGame() {
+    if (gameTimer != null) {
+      gameTimer!.cancel();
+    }
+    setState(() {
+      hasStarted = false;
+      snakePosition = [0, 1, 2]; // Reset snake position
+      currentScore = 0; // Reset score
+      foodPosition =
+          Random().nextInt(totalNumberSquares); // Reset food position
+    });
+  }
+
+  Future<dynamic> CustomShowDialog() {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            elevation: 10,
+            title: Text(
+              'Game Over',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: SizedBox(
+              height: 150,
+              child: Column(
+                children: [
+                  Text(
+                    'Your Score: ${currentScore}',
+                  ),
+                  Gap(30),
+                  CustomTextFormField(
+                    controller: nameController,
+                    prefixIcon: Icon(Icons.person),
+                    labelText: "Enter your name ",
+                  )
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    submitScore();
+                    Navigator.pop(context);
+                  },
+                  child: Text('Submit'),
+                ),
+              ),
+            ],
+          );
+        });
+  }
+
 //* restart the game
-  void restartGame() {
+  restartGame() {
+    highScoreList = [];
     snakePosition = [
       0,
       1,
@@ -238,153 +245,138 @@ class _HomePageState extends State<HomePage> {
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: Colors.black,
-      body: SizedBox(
-        width: screenWidth > 420 ? 400 : screenWidth,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            //* high scores
-            Expanded(
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          width: screenWidth > 420 ? 400 : screenWidth,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              //* high scores
+              Expanded(
                 child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Text(
-                  "Current Score : $currentScore",
-                  style: TextStyle(
-                    fontSize: 23,
-                    color: Colors.white,
-                  ),
-                ),
-                // Divider(
-                //   color: Colors.white,
-                //   thickness: 2,
-                // ),
-
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Top Score ",
+                      "Current Score : $currentScore",
                       style: TextStyle(
                         fontSize: 23,
                         color: Colors.white,
                       ),
                     ),
-                    Gap(10),
+                    Gap(100),
+                    Expanded(
+                      child: hasStarted
+                          ? Container()
+                          : FutureBuilder(
+                              future: letsGetDocsIds,
+                              builder: (context, snapshot) {
+                                return ListView.builder(
+                                  itemCount: highScoreList.length,
+                                  itemBuilder: (context, index) {
+                                    return HighScoreTile(
+                                        documentId: highScoreList[index]);
+                                  },
+                                );
+                              }),
+                    ),
                   ],
                 ),
-                Expanded(
-                  child: FutureBuilder(
-                      future: letsGetDocsIds,
-                      builder: (context, snapshot) {
-                        return ListView.builder(
-                          itemCount: highScoreList.length,
-                          itemBuilder: (context, index) {
-                            return Text(
-                              highScoreList[index],
-                              style: TextStyle(
-                                color: Colors.white,
-                              ),
-                            );
-                          },
-                        );
-                      }),
-                ),
-              ],
-            )),
+              ),
 
-            //* Game Grid
-            Expanded(
-              flex: 3,
-              child: GestureDetector(
-                onVerticalDragUpdate: (details) {
-                  if (details.delta.dy < 0 &&
-                      currentDirection != snake_direction.DOWN) {
-                    //*move up
-                    print('move up');
-                    currentDirection = snake_direction.UP;
-                  } else if (details.delta.dy > 0 &&
-                      currentDirection != snake_direction.UP) {
-                    //* move down
-                    currentDirection = snake_direction.DOWN;
-                    print('move down');
-                  }
-                },
-                onHorizontalDragUpdate: (details) {
-                  if (details.delta.dx < 0 &&
-                      currentDirection != snake_direction.RIGHT) {
-                    //*move left
-                    currentDirection = snake_direction.LEFT;
-                    print('move left');
-                  } else if (details.delta.dx > 0 &&
-                      currentDirection != snake_direction.LEFT) {
-                    //* move right
-                    currentDirection = snake_direction.RIGHT;
-                    print('move right');
-                  }
-                },
-                child: GridView.builder(
-                  itemCount: totalNumberSquares,
-                  physics: NeverScrollableScrollPhysics(),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: rowSize,
-                  ),
-                  itemBuilder: (context, index) {
-                    if (snakePosition.contains(index)) {
-                      return SnakePixels();
-                    } else if (foodPosition == index) {
-                      return FoodSnake();
-                    } else {
-                      return BlankPixels();
+              //* Game Grid
+              Expanded(
+                flex: 3,
+                child: GestureDetector(
+                  onVerticalDragUpdate: (details) {
+                    if (details.delta.dy < 0 &&
+                        currentDirection != snake_direction.DOWN) {
+                      //*move up
+                      print('move up');
+                      currentDirection = snake_direction.UP;
+                    } else if (details.delta.dy > 0 &&
+                        currentDirection != snake_direction.UP) {
+                      //* move down
+                      currentDirection = snake_direction.DOWN;
+                      print('move down');
                     }
                   },
+                  onHorizontalDragUpdate: (details) {
+                    if (details.delta.dx < 0 &&
+                        currentDirection != snake_direction.RIGHT) {
+                      //*move left
+                      currentDirection = snake_direction.LEFT;
+                      print('move left');
+                    } else if (details.delta.dx > 0 &&
+                        currentDirection != snake_direction.LEFT) {
+                      //* move right
+                      currentDirection = snake_direction.RIGHT;
+                      print('move right');
+                    }
+                  },
+                  child: GridView.builder(
+                    itemCount: totalNumberSquares,
+                    physics: NeverScrollableScrollPhysics(),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: rowSize,
+                    ),
+                    itemBuilder: (context, index) {
+                      if (snakePosition.contains(index)) {
+                        return SnakePixels();
+                      } else if (foodPosition == index) {
+                        return FoodSnake();
+                      } else {
+                        return BlankPixels();
+                      }
+                    },
+                  ),
                 ),
               ),
-            ),
 
-            //* Play Button
-            Expanded(
-                child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Container(
-                  child: Center(
-                    child: MaterialButton(
-                      minWidth: 100,
-                      height: 50,
-                      color: hasStarted ? Colors.grey : Colors.pink,
-                      onPressed: hasStarted ? () {} : startGame,
-                      child: Text(
-                        "Play",
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
+              //* Play Button
+              Expanded(
+                  child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Container(
+                    child: Center(
+                      child: MaterialButton(
+                        minWidth: 100,
+                        height: 50,
+                        color: hasStarted ? Colors.grey : Colors.pink,
+                        onPressed: hasStarted ? () {} : startGame,
+                        child: Text(
+                          "Play",
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                //!todo  do this
-                Container(
-                  child: Center(
-                    child: MaterialButton(
-                      minWidth: 100,
-                      height: 50,
-                      color: hasStarted ? Colors.grey : Colors.pink,
-                      onPressed: hasStarted ? () {} : startGame,
-                      child: Text(
-                        "Stop",
-                        style: TextStyle(
-                          fontSize: 24,
-                          color: Colors.white,
+                  //!todo  do this
+                  Container(
+                    child: Center(
+                      child: MaterialButton(
+                        minWidth: 100,
+                        height: 50,
+                        color: hasStarted ? Colors.grey : Colors.pink,
+                        onPressed: stopGame,
+                        child: Text(
+                          "Stop",
+                          style: TextStyle(
+                            fontSize: 24,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            )),
-          ],
+                ],
+              )),
+            ],
+          ),
         ),
       ),
     );
